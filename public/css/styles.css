@@ -1,0 +1,255 @@
+* {
+  -webkit-box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+body {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ddd;
+  font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #333;
+}
+
+#page {
+  position: relative;
+  width: 60%;
+  min-width: 800px;
+  max-width: 1200px;
+  margin: 0 auto;
+  background-color: #fff;
+  -webkit-box-shadow: 0px 0px 10px #999999;
+  -moz-box-shadow: 0px 0px 10px #999999;
+  box-shadow: 0px 0px 10px #999999;
+  z-index: 1;
+  min-height: 100%;
+}
+
+#header img {
+  width: 100%;
+}
+
+#content {
+  padding: 20px 10px;
+}
+
+#fields {
+  width: 100%;
+}
+
+#my-field {
+  float: left;
+}
+
+#opponent-field {
+  float: left;
+  margin-left: 40px;
+  display: none;
+}
+
+#my-field td.cell,
+#opponent-field td.cell{
+  position: relative;
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border: 1px solid #ddd;
+  padding: 0;
+  margin: 0;
+}
+
+#my-field td.empty,
+#opponent-field td.empty{
+  background-color: blue !important;
+}
+
+#my-field td.hit,
+#opponent-field td.hit{
+  background-color: #ff0000 !important;
+}
+
+#my-field td.destroyed,
+#opponent-field td.destroyed{
+  border: 1px solid #ff0000 !important;
+}
+
+#opponent-field table.disabled {
+  opacity: 0.4;
+}
+
+#opponent-field caption span {
+  display: none;
+  color: #ff0000;
+}
+
+#opponent-field td.can_move {
+  cursor: pointer;
+}
+
+#opponent-field td.can_move:hover {
+  -webkit-box-shadow: inset 0px 0px 10px 0px rgba(255, 28, 28, 0.75);
+  -moz-box-shadow:    inset 0px 0px 10px 0px rgba(255, 28, 28, 0.75);
+  box-shadow:         inset 0px 0px 10px 0px rgba(255, 28, 28, 0.75);
+}
+
+#my-field td.ship_cell {
+  background-color: #ddd;
+}
+
+#info {
+  display: /*inline-block*/;
+  display: none;
+  float: right;
+  width: 20%;
+  border-radius: 5px;
+  padding: 10px;
+  background-color: #ddd;
+  box-shadow: 0 2px 3px 0 rgba(0,0,0,.2);
+  text-align: center;
+  margin-left: 90px;
+  vertical-align: top;
+}
+
+#info span.current {
+  color: green;
+}
+
+#info span.opponent {
+  color: red;
+}
+
+#join-block {
+  float: left;
+  margin-left: 40px;
+  margin-top: 20px;
+  width: 300px;
+  height: 300px;
+  text-align: center;
+  padding: 40px 0;
+  background-color: #ddd;
+  box-shadow: 0 2px 3px 0 rgba(0,0,0,.2);
+}
+
+.clear {
+  clear: both;
+}
+
+.button {
+  padding: 10px 15px;
+  font-size: 14px;
+  line-height: 14px;
+  background-color: #666;
+  color: #fff;
+  display: inline-block;
+}
+
+div.chat {
+  display: none;
+}
+
+div.chat-wrapper {
+  width: 100%;
+  border-radius: 5px;
+  border: 1px solid #333;
+  overflow-y: auto;
+  height: 200px;
+  margin-bottom: 5px;
+}
+
+div.chat-wrapper #chat {
+  width: 100%;
+  max-width: 100%;
+  padding: 10px;
+}
+
+div.input-group {
+  position: relative;
+  display: table;
+  border-collapse: separate;
+}
+
+div.input-group input {
+  display: table-cell;
+  position: relative;
+  z-index: 2;
+  float: left;
+  width: 100%;
+  margin: 0;
+  margin-bottom: 0;
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+div.input-group span.input-group-btn {
+  position: relative;
+  font-size: 0;
+  white-space: nowrap;
+  width: 1%;
+  vertical-align: middle;
+  display: table-cell;
+}
+
+div.input-group span.input-group-btn button {
+  z-index: 2;
+  margin-left: -1px;
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  position: relative;
+}
+
+input {
+  display: block;
+  width: 100%;
+  height: 34px;
+  padding: 6px 12px;
+  font-size: 14px;
+  line-height: 1.42857143;
+  color: #555;
+  background-color: #fff;
+  background-image: none;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+  box-shadow: inset 0 1px 1px rgba(0,0,0,.075);
+  -webkit-transition: border-color ease-in-out .15s,-webkit-box-shadow ease-in-out .15s;
+  -o-transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+  transition: border-color ease-in-out .15s,box-shadow ease-in-out .15s;
+}
+
+button {
+  display: inline-block;
+  padding: 6px 12px;
+  margin-bottom: 0;
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.42857143;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background-image: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+div.ship-box {
+  z-index: 2;
+  left: 0;
+  top: 0;
+  border: 2px solid blue;
+  background: rgba(0,0,255,0.05);
+  position: absolute !important;
+  margin: -2px;
+}
