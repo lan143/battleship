@@ -10,6 +10,13 @@ use React\Socket\Server;
 use Monolog\Logger;
 use Monolog\Handler\StreamHandler;
 
+/**
+ * Class Application
+ * @package Battleship
+ *
+ * @property array $config
+ * @property Logger $logger
+ */
 class Application
 {
     public $config;

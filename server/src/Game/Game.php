@@ -1,6 +1,7 @@
 <?php
 namespace Battleship\Game;
 
+use Battleship\Battleship;
 use Battleship\Network\ClientSession;
 use Battleship\Network\Packet;
 
@@ -14,18 +15,9 @@ class Game
     {
         $this->is_ended = false;
 
-        $this->players[] = array(
-            'id'      => 1,
-            'session' => $player_1,
-            'field'   => $player_1->GetField()
-        );
+        $this->players[] = new Player(Player::PLAYER_ONE, $player_1, $player_1->getField());
+        $this->players[] = new Player(Player::PLAYER_TWO, $player_2, $player_2->getField());
 
-        $this->players[] = array(
-            'id'      => 2,
-            'session' => $player_2,
-            'field'   => $player_2->GetField()
-        );
-        
         $packet = new Packet([
             'opcode' => 'smsg_start_battle',
             'data' => []
@@ -33,15 +25,14 @@ class Game
         
         foreach ($this->players as $player)
         {
-            $player['session']->SendPacket($packet);
+            $player->session->SendPacket($packet);
         }
 
-        $this->setPlayerCanMove(rand(0, 1) == 0 ? $player_1 : $player_2);
+        $this->setPlayerCanMove(rand(Player::PLAYER_ONE, Player::PLAYER_TWO));
     }
     
-    private function setPlayerCanMove(ClientSession $session)
+    private function setPlayerCanMove(int $id)
     {
-        $id = $this->getPlayerIdBySession($session);
         $this->player_can_move = $id;
         
         foreach ($this->players as $player)
@@ -49,11 +40,11 @@ class Game
             $packet = new Packet([
                 'opcode' => 'smsg_can_move',
                 'data' => [
-                    'can_move' => $player['id'] == $id
+                    'can_move' => $player->id == $id
                 ]
             ]);
 
-            $player['session']->sendPacket($packet);
+            $player->session->sendPacket($packet);
         }
     }
     
@@ -64,13 +55,13 @@ class Game
             $packet = new Packet([
                 'opcode' => 'smsg_end_game',
                 'data' => [
-                    'you_win' => $player['id'] == $winner,
+                    'you_win' => $player->id == $winner,
                     'lose'    => $lose
                 ]
             ]);
 
-            $player['session']->sendPacket($packet);
-            $player['session']->setGame(NULL);
+            $player->session->sendPacket($packet);
+            $player->session->removeGame();
         }
 
         $this->is_ended = true;
@@ -81,13 +72,15 @@ class Game
         return $this->is_ended;
     }
 
-    public function playerLeave(int $player_id)
+    public function playerLeave(ClientSession $session)
     {
+        $player_id = $this->getPlayerIdBySession($session);
+
         foreach ($this->players as $player)
         {
-            if ($player['id'] != $player_id)
+            if ($player->id != $player_id)
             {
-                $this->endGame($player['id'], true);
+                $this->endGame($player->id, true);
                 return;
             }
         }
@@ -103,11 +96,11 @@ class Game
                 'opcode' => 'smsg_game_chat_message',
                 'data' => [
                     'message' => $message,
-                    'self'    => $player['id'] == $player_id,
+                    'self'    => $player->id == $player_id,
                 ]
             ]);
 
-            $player['session']->sendPacket($packet);
+            $player->session->sendPacket($packet);
         }
     }
     
@@ -115,13 +108,20 @@ class Game
     {
         $player_id = $this->getPlayerIdBySession($session);
 
+        Battleship::$app->logger->debug("player_id: ".var_export($player_id, true));
+        Battleship::$app->logger->debug("player_can_move: ".var_export($this->player_can_move, true));
+
         if ($this->player_can_move == $player_id)
         {
             foreach ($this->players as $player)
             {
-                if ($player['id'] != $player_id)
+                Battleship::$app->logger->debug("player->id: ".var_export($player->id, true));
+
+                if ($player->id != $player_id)
                 {
-                    $result = $player['field']->shot($data->x, $data->y);
+                    $result = $player->field->shot($data->x, $data->y);
+
+                    Battleship::$app->logger->debug("result shot: ".var_export($result, true));
 
                     $packet = new Packet([
                         'opcode' => 'smsg_move',
@@ -134,7 +134,7 @@ class Game
                         ]
                     ]);
                     
-                    $player['session']->sendPacket($packet);
+                    $player->session->sendPacket($packet);
                     
                     $packet = new Packet([
                         'opcode' => 'smsg_opponent_move',
@@ -147,7 +147,7 @@ class Game
                         ]
                     ]);
 
-                    $player['session']->sendPacket($packet);
+                    $player->session->sendPacket($packet);
                     
                     if ($result['end_game'])
                         $this->endGame($player_id, false);
@@ -155,7 +155,7 @@ class Game
                     if ($result['result'] == 1)
                         $this->setPlayerCanMove($player_id);
                     else
-                        $this->setPlayerCanMove($player['id']);
+                        $this->setPlayerCanMove($player->id);
                 }
             }
         }
@@ -170,9 +170,9 @@ class Game
 
             foreach ($this->players as $player)
             {
-                if ($player['id'] == $player_id)
+                if ($player->id == $player_id)
                 {
-                    $player['session']->sendPacket($packet);
+                    $player->session->sendPacket($packet);
                 }
             }
         }
@@ -182,9 +182,9 @@ class Game
     {
         foreach ($this->players as $player)
         {
-            if ($player['session'] != $session)
+            if ($player->session === $session)
             {
-                return $player['id'];
+                return $player->id;
             }
         }
 

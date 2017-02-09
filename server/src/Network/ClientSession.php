@@ -25,14 +25,25 @@ class ClientSession
             $this->current_game->playerLeave($this);
     }
 
-    public function getGame() : Game
+    /**
+     * @return null|Game
+     */
+    public function getGame()
     {
         return $this->current_game;
     }
 
+    /**
+     * @param Game $game
+     */
     public function setGame(Game $game)
     {
         $this->current_game = $game;
+    }
+
+    public function removeGame()
+    {
+        $this->current_game = null;
     }
 
     public function getConnection() : ConnectionInterface
@@ -45,7 +56,10 @@ class ClientSession
         $this->field = new Field($this);
     }
 
-    public function getField() : Field
+    /**
+     * @return null|Field
+     */
+    public function getField()
     {
         return $this->field;
     }

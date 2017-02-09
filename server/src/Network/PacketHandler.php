@@ -26,6 +26,8 @@ class PacketHandler
         
         if ($game)
             $game->playerMove($data, $session);
+        else
+            self::sendGameNotFound($session);
     }
     
     static function cmsg_leave_game(\stdClass $data, ClientSession $session)
@@ -34,6 +36,8 @@ class PacketHandler
         
         if ($game)
             $game->playerLeave($session);
+        else
+            self::sendGameNotFound($session);
     }
     
     static function cmsg_ping(\stdClass $data, ClientSession $session)
@@ -64,6 +68,20 @@ class PacketHandler
         
         if ($game)
             $game->chatMessage($data->message, $session);
+        else
+            self::sendGameNotFound($session);
+    }
+
+    static function sendGameNotFound(ClientSession $session)
+    {
+        $packet = new Packet([
+            'opcode' => 'smsg_error',
+            'data' => [
+                'message' => 'Game not found',
+            ]
+        ]);
+
+        $session->sendPacket($packet);
     }
 }
 

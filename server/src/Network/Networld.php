@@ -2,6 +2,7 @@
 namespace Battleship\Network;
 
 use Battleship\Battleship;
+use Battleship\Game\QueueMgr;
 use Battleship\Network\Exceptions\PacketParseException;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
@@ -15,6 +16,9 @@ class Networld implements MessageComponentInterface
         $this->sessions = new \SplObjectStorage;
     }
 
+    /**
+     * @param ConnectionInterface $conn
+     */
     public function onOpen(ConnectionInterface $conn)
     {
         $session = new ClientSession($conn, $this);
@@ -23,6 +27,10 @@ class Networld implements MessageComponentInterface
         Battleship::$app->logger->debug("New connection! ({$conn->resourceId})");
     }
 
+    /**
+     * @param ConnectionInterface $from
+     * @param string $msg
+     */
     public function onMessage(ConnectionInterface $from, $msg)
     {
         Battleship::$app->logger->debug('Connection '.$from->resourceId.' sending message "'.$msg.'"');
@@ -60,24 +68,41 @@ class Networld implements MessageComponentInterface
         }
     }
 
+    /**
+     * @param ConnectionInterface $conn
+     */
     public function onClose(ConnectionInterface $conn)
     {
         $session = $this->findSession($conn);
         if ($session !== null)
         {
+            $game = $session->getGame();
+            if ($game)
+                $game->playerLeave($session);
+
+            QueueMgr::getInstance()->leaveQueue($session);
+
             $this->sessions->detach($session);
         }
 
         Battleship::$app->logger->debug("Connection {$conn->resourceId} has disconnected");
     }
 
+    /**
+     * @param ConnectionInterface $conn
+     * @param \Exception $e
+     */
     public function onError(ConnectionInterface $conn, \Exception $e)
     {
         Battleship::$app->logger->error("An error has occurred: {$e->getMessage()}");
         $conn->close();
     }
 
-    private function findSession($conn) : ClientSession
+    /**
+     * @param ConnectionInterface $conn
+     * @return mixed|null|ClientSession
+     */
+    private function findSession(ConnectionInterface $conn)
     {
         foreach ($this->sessions as $session)
         {
@@ -88,6 +113,10 @@ class Networld implements MessageComponentInterface
         return null;
     }
 
+    /**
+     * @param Packet $packet
+     * @param ClientSession $session
+     */
     public function sendPacket(Packet $packet, ClientSession $session)
     {
         $session->getConnection()->send((string)$packet);

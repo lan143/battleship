@@ -28,7 +28,7 @@ $(function() {
 	});
 	
 	conn.addEventListener('smsg_game_chat_message', function (data) {
-		$('#chat').html($('#chat').html() + '<p>' + (data.self ? '<font color="blue">Вы</font>' : '<font color="red">Противник</font>') + ': ' + data.message + '</p>');
+		$('#chat').html($('#chat').html() + '<p>' + (data.self ? '<font color="blue">Р’С‹</font>' : '<font color="red">РџСЂРѕС‚РёРІРЅРёРє</font>') + ': ' + data.message + '</p>');
 		$('#chat').parent().scrollTop($('#chat').height());
 		
 		sounds.chat.pause();
@@ -37,16 +37,16 @@ $(function() {
 	});
 
 	$('#join-queue').click(function() {
-		if ($(this).html() != 'Выйти из очереди')
+		if ($(this).html() != 'Р’С‹Р№С‚Рё РёР· РѕС‡РµСЂРµРґРё')
 		{
 			conn.send(JSON.stringify({opcode: 'cmsg_join_queue', data: {}}));
-			$(this).html('Выйти из очереди');
+			$(this).html('Р’С‹Р№С‚Рё РёР· РѕС‡РµСЂРµРґРё');
 			$('span', $(this).parent()).show(400);
 		}
 		else
 		{
 			conn.send(JSON.stringify({opcode: 'cmsg_leave_queue', data: {}}));
-			$(this).html('Найти противника');
+			$(this).html('РќР°Р№С‚Рё РїСЂРѕС‚РёРІРЅРёРєР°');
 			$('span', $(this).parent()).hide(400);
 
 		}
@@ -97,12 +97,12 @@ $(function() {
 				if (!$(this).hasClass('empty') && !$(this).hasClass('hit'))
 					$(this).addClass('can_move').unbind('click').bind('click', PlayerMove);
 			});
-			$('#current-move').html('Ваш ход').removeClass('opponent').addClass('current');
+			$('#current-move').html('Р’Р°С€ С…РѕРґ').removeClass('opponent').addClass('current');
 		}
 		else
 		{
 			$('#opponent-field td').removeClass('can_move').unbind('click');
-			$('#current-move').html('Ход противника').removeClass('current').addClass('opponent');
+			$('#current-move').html('РҐРѕРґ РїСЂРѕС‚РёРІРЅРёРєР°').removeClass('current').addClass('opponent');
 		}
 	});
 	
@@ -190,14 +190,14 @@ $(function() {
 		var mess = '';
 		
 		if (data.lose && data.you_win)
-			mess += 'Противник покинул игру. ';
+			mess += 'РџСЂРѕС‚РёРІРЅРёРє РїРѕРєРёРЅСѓР» РёРіСЂСѓ. ';
 		else if (data.lose)
-			mess += 'Вы покинули игру. ';
+			mess += 'Р’С‹ РїРѕРєРёРЅСѓР»Рё РёРіСЂСѓ. ';
 
 		if (data.you_win)
-			mess += 'Вы победили.';
+			mess += 'Р’С‹ РїРѕР±РµРґРёР»Рё.';
 		else
-			mess += 'Вы проиграли.';
+			mess += 'Р’С‹ РїСЂРѕРёРіСЂР°Р»Рё.';
 			
 		alert(mess);
 
@@ -205,7 +205,7 @@ $(function() {
 		conn.send(JSON.stringify({opcode: 'cmsg_request_field', data: {}}));
 
 		$('#join-block span').hide();
-		$('#join-queue').html('Встать в очередь');
+		$('#join-queue').html('Р’СЃС‚Р°С‚СЊ РІ РѕС‡РµСЂРµРґСЊ');
 		$('#join-block').show(400);
 		$('#opponent-field').hide(400);
 		$('#info').hide(400);
