@@ -106,57 +106,58 @@ class Game
     
     public function playerMove(\stdClass $data, ClientSession $session)
     {
-        $player_id = $this->getPlayerIdBySession($session);
-
-        Battleship::$app->logger->debug("player_id: ".var_export($player_id, true));
-        Battleship::$app->logger->debug("player_can_move: ".var_export($this->player_can_move, true));
-
-        if ($this->player_can_move == $player_id)
+        $player = $this->getPlayerBySession($session);
+        if ($player)
         {
-            foreach ($this->players as $player)
+            $opponent = $this->getOpponent($player);
+            if ($opponent)
             {
-                Battleship::$app->logger->debug("player->id: ".var_export($player->id, true));
+                $result = $opponent->field->shot($data->x, $data->y);
 
-                if ($player->id != $player_id)
-                {
-                    $result = $player->field->shot($data->x, $data->y);
+                $packet = new Packet([
+                    'opcode' => 'smsg_move',
+                    'data' => [
+                        'result'    => $result['result'],
+                        'x'         => $data->x,
+                        'y'         => $data->y,
+                        'destroyed' => isset($result['destroyed']) ? $result['destroyed'] : false,
+                        'ship'      => isset($result['ship']) ? $result['ship'] : [],
+                    ]
+                ]);
 
-                    Battleship::$app->logger->debug("result shot: ".var_export($result, true));
+                $player->sendPacket($packet);
 
-                    $packet = new Packet([
-                        'opcode' => 'smsg_move',
-                        'data' => [
-                            'result'    => $result['result'],
-                            'x'         => $data->x,
-                            'y'         => $data->y,
-                            'destroyed' => $result['destroyed'],
-                            'ship'      => $result['ship'],
-                        ]
-                    ]);
-                    
-                    $player->session->sendPacket($packet);
-                    
-                    $packet = new Packet([
-                        'opcode' => 'smsg_opponent_move',
-                        'data' => [
-                            'result'    => $result['result'],
-                            'x'         => $data->x,
-                            'y'         => $data->y,
-                            'destroyed' => $result['destroyed'],
-                            'ship'      => $result['ship'],
-                        ]
-                    ]);
+                $packet = new Packet([
+                    'opcode' => 'smsg_opponent_move',
+                    'data' => [
+                        'result'    => $result['result'],
+                        'x'         => $data->x,
+                        'y'         => $data->y,
+                        'destroyed' => isset($result['destroyed']) ? $result['destroyed'] : false,
+                        'ship'      => isset($result['ship']) ? $result['ship'] : [],
+                    ]
+                ]);
 
-                    $player->session->sendPacket($packet);
-                    
-                    if ($result['end_game'])
-                        $this->endGame($player_id, false);
-                    
-                    if ($result['result'] == 1)
-                        $this->setPlayerCanMove($player_id);
-                    else
-                        $this->setPlayerCanMove($player->id);
-                }
+                $opponent->sendPacket($packet);
+
+                if (isset($result['end_game']) && $result['end_game'])
+                    $this->endGame($player->id, false);
+
+                if ($result['result'] == 1)
+                    $this->setPlayerCanMove($player->id);
+                else
+                    $this->setPlayerCanMove($opponent->id);
+            }
+            else
+            {
+                $packet = new Packet([
+                    'opcode' => 'smsg_move',
+                    'data' => [
+                        'error' => 2
+                    ]
+                ]);
+
+                $session->sendPacket($packet);
             }
         }
         else
@@ -168,23 +169,55 @@ class Game
                 ]
             ]);
 
-            foreach ($this->players as $player)
-            {
-                if ($player->id == $player_id)
-                {
-                    $player->session->sendPacket($packet);
-                }
-            }
+            $session->sendPacket($packet);
         }
     }
 
-    private function getPlayerIdBySession(ClientSession $session) : int
+    /**
+     * @param ClientSession $session
+     * @return null|int
+     */
+    private function getPlayerIdBySession(ClientSession $session)
     {
         foreach ($this->players as $player)
         {
             if ($player->session === $session)
             {
                 return $player->id;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param ClientSession $session
+     * @return null|Player
+     */
+    private function getPlayerBySession(ClientSession $session)
+    {
+        foreach ($this->players as $player)
+        {
+            if ($player->session === $session)
+            {
+                return $player;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * @param Player $player
+     * @return Player|null
+     */
+    private function getOpponent(Player $player)
+    {
+        foreach ($this->players as $_player)
+        {
+            if ($_player !== $player)
+            {
+                return $_player;
             }
         }
 
