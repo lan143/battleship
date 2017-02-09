@@ -2,6 +2,7 @@
 namespace Battleship\Network;
 
 use Battleship\Battleship;
+use Battleship\Network\Exceptions\PacketParseException;
 use Ratchet\ConnectionInterface;
 
 class Networld
@@ -13,7 +14,7 @@ class Networld
         $this->sessions = new \SplObjectStorage;
     }
 
-    public function onOpen(ConnectionInterface $conn)
+    public function onOpen(ConnectionInterface $conn) : void
     {
         $session = new ClientSession($conn, $this);
         $this->sessions->attach($session);
@@ -21,37 +22,44 @@ class Networld
         Battleship::$app->logger->debug("New connection! ({$conn->resourceId})");
     }
 
-    public function onMessage(ConnectionInterface $from, $msg)
+    public function onMessage(ConnectionInterface $from, $msg) : void
     {
         Battleship::$app->logger->debug('Connection '.$from->resourceId.' sending message "'.$msg.'"');
 
         $session = $this->findSession($from);
         if ($session !== null)
         {
-            $packet = json_decode($msg);
-            $handlerName = $packet->{'opcode'};
+            try {
+                $packet = new Packet([
+                    'json_data' => $msg
+                ]);
+            } catch (PacketParseException $e) {
+                Battleship::$app->logger->error("Failed parse packet. Error: ".$e->getMessage().". Data: {$msg}");
+            }
+
+            $handlerName = $packet->getOpcode();
 
             if (method_exists('PacketHandler', $handlerName))
             {
-                PacketHandler::$handlerName($packet->{'data'}, $session);
+                PacketHandler::$handlerName($packet->getData(), $session);
             }
             else
             {
                 Battleship::$app->logger->error("Got unknown packet: ".$handlerName);
 
-                $packet = array(
+                $packet = new Packet([
                     'opcode' => 'smsg_error',
-                    'data' => array(
+                    'data' => [
                         'message' => 'received unknown packet',
-                    )
-                );
+                    ]
+                ]);
 
-                $from->send(json_encode($packet));
+                $this->sendPacket($packet, $session);
             }
         }
     }
 
-    public function onClose(ConnectionInterface $conn)
+    public function onClose(ConnectionInterface $conn) : void
     {
         $session = $this->findSession($conn);
         if ($session !== null)
@@ -62,13 +70,13 @@ class Networld
         Battleship::$app->logger->debug("Connection {$conn->resourceId} has disconnected");
     }
 
-    public function onError(ConnectionInterface $conn, \Exception $e)
+    public function onError(ConnectionInterface $conn, \Exception $e) : void
     {
         Battleship::$app->logger->error("An error has occurred: {$e->getMessage()}");
         $conn->close();
     }
 
-    private function findSession($conn)
+    private function findSession($conn) : ClientSession
     {
         foreach ($this->sessions as $session)
         {
@@ -77,5 +85,10 @@ class Networld
         }
 
         return null;
+    }
+
+    public function sendPacket(Packet $packet, ClientSession $session) : void
+    {
+        $session->getConnection()->send((string)$packet);
     }
 }

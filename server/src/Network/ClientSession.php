@@ -32,4 +32,9 @@ class ClientSession
     {
         $this->current_game = $game;
     }
+
+    public function getConnection() : ConnectionInterface
+    {
+        return $this->conn;
+    }
 }
