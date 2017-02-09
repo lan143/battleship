@@ -1,6 +1,7 @@
 <?php
 namespace Battleship\Network;
 
+use Battleship\Game\Field;
 use Battleship\Game\Game;
 use Ratchet\ConnectionInterface;
 
@@ -9,6 +10,7 @@ class ClientSession
     private $conn;
     private $current_game;
     private $networld;
+    private $field;
 
     public function __construct(ConnectionInterface $conn, Networld $networld)
     {
@@ -36,5 +38,20 @@ class ClientSession
     public function getConnection() : ConnectionInterface
     {
         return $this->conn;
+    }
+
+    public function generateField() : void
+    {
+        $this->field = new Field($this);
+    }
+
+    public function getField() : Field
+    {
+        return $this->field;
+    }
+
+    public function sendPacket(Packet $packet) : void
+    {
+        $this->networld->sendPacket($packet, $this);
     }
 }

@@ -1,26 +1,26 @@
 <?php
 namespace Battleship\Game;
 
+use Battleship\Network\ClientSession;
+
 class Field
 {
     private $field;
     private $ships;
     
-    private $context;
-    private $id;
+    private $session;
     
     const TYPE_EMPTY = 0;
     const TYPE_SHIP  = 1;
     const TYPE_LOSE  = 2;
     const TYPE_HIT   = 3;
 
-    public function __construct($context, $id)
+    public function __construct(ClientSession $session)
     {
-        $this->field = array();
-        $this->ships = array();
+        $this->field = [];
+        $this->ships = [];
         
-        $this->context = $context;
-        $this->id = $id;
+        $this->session = $session;
 
         for ($x = 0; $x < 10; $x++)
         {
@@ -30,8 +30,8 @@ class Field
             }
         }
 
-        $this->GenerateShips();
-        $this->Send();
+        $this->generateShips();
+        $this->send();
     }
     
     public function shot(int $x, int $y)
@@ -61,7 +61,7 @@ class Field
         }
     }
 
-    private function generateShips()
+    private function generateShips() : void
     {
         $this->ships[] = new Ship($this, 4);
 
@@ -115,7 +115,7 @@ class Field
         return true;
     }
 
-    public function getFreeCells()
+    public function getFreeCells() : array
     {
         $arFreeCells = array();
 
@@ -133,7 +133,7 @@ class Field
         return $arFreeCells;
     }
     
-    private function send()
+    private function send() : void
     {
         $field = array();
         foreach ($this->field as $x => $row)
@@ -155,14 +155,14 @@ class Field
             }
         }
         
-        $packet = array(
+        $packet = Packet([
             'opcode' => 'smsg_field',
-            'data' => array(
+            'data' => [
                 'field' => $field
-            )
-        );
+            ]
+        ]);
         
-        $this->context->send($packet, $this->id);
+        $this->session->sendPacket($packet);
     }
     
     public function toString()

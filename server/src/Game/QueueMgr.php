@@ -1,46 +1,25 @@
 <?php
 namespace Battleship\Game;
 
-class QueueMgr
+use Battleship\Network\ClientSession;
+use Battleship\Patterns\Singleton\SingletonInterface;
+use Battleship\Patterns\Singleton\SingletonTrait;
+
+class QueueMgr implements SingletonInterface
 {
-    private function __construct(){  }
-    private function __clone()    {  }
-    private function __wakeup()   {  }
-    private static $instance;
-
-    private $users = array();
-    private $is_inited = false;
-    private $context = null;
+    use SingletonTrait;
     
+    private $sessions = array();
     private $games = array();
-
-    public static function getInstance()
-    {
-        if (empty(self::$instance))
-            self::$instance = new self();
-
-        return self::$instance;
-    }
     
-    public function init($context)
+    public function joinQueue(ClientSession $session) : void
     {
-        $this->context = $context;
-        $this->is_inited = true;
-    }
-    
-    public function isInited()
-    {
-        return $this->is_inited;
-    }
-    
-    public function joinQueue($user_id)
-    {
-        $this->users[] = $user_id;
+        $this->sessions[] = $session;
         
-        if (count($this->users) > 1)
+        if (count($this->sessions) > 1)
         {
-            $player_1 = array_shift($this->users);
-            $player_2 = array_shift($this->users);
+            $player_1 = array_shift($this->sessions);
+            $player_2 = array_shift($this->sessions);
             $this->startGame($player_1, $player_2);
         }
         
@@ -53,45 +32,40 @@ class QueueMgr
         }
     }
     
-    public function leaveQueue($user_id)
+    public function leaveQueue(ClientSession $session) : void
     {
-        foreach ($this->users as $key => $user)
+        foreach ($this->sessions as $key => $_session)
         {
-            if ($user == $user_id)
+            if ($_session == $session)
             {
-                unset($this->users[$key]);
+                unset($this->sessions[$key]);
             }
         }
     }
 
-    private function startGame($player_1, $player_2)
+    private function startGame(ClientSession $player_1, ClientSession $player_2) : void
     {
         $game = array(
-            'game' => new Game($player_1, $player_2, $this->context),
+            'game' => new Game($player_1, $player_2),
             'player_1' => $player_1,
             'player_2' => $player_2
         );
-        
-        if ($this->context->GetUserMgr()->GetUser($player_1))
-            $this->context->GetUserMgr()->GetUser($player_1)->SetGame($game['game']);
-        else
-            return false;
-        
-        if ($this->context->GetUserMgr()->GetUser($player_2))
-            $this->context->GetUserMgr()->GetUser($player_2)->SetGame($game['game']);
-        else
-            return false;
+
+        $player_1->SetGame($game['game']);
+        $player_2->SetGame($game['game']);
         
         $this->games[] = $game;
     }
     
-    public function getGameByUserId($id)
+    public function getGameByUserSession(ClientSession $session) : Game
     {
         foreach ($this->games as $game)
         {
-            if ($game['player_1'] == $id || $game['player_2'] == $id)
+            if ($game['player_1'] == $session || $game['player_2'] == $session)
                 return $game['game'];
         }
+
+        return null;
     }
 }
 ?>

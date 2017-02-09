@@ -1,87 +1,86 @@
 <?php
 namespace Battleship\Game;
 
+use Battleship\Network\ClientSession;
+use Battleship\Network\Packet;
+
 class Game
 {
     private $players;
-    private $context;
     private $player_can_move;
     private $is_ended;
 
-    public function __construct($player_1, $player_2, $context)
+    public function __construct(ClientSession $player_1, ClientSession $player_2)
     {
-        $this->context = $context;
         $this->is_ended = false;
 
         $this->players[] = array(
-            'id'    => $player_1,
-            'field' => $context->GetUserMgr()->GetUser($player_1)->GetField()
+            'id'      => 1,
+            'session' => $player_1,
+            'field'   => $player_1->GetField()
         );
 
         $this->players[] = array(
-            'id'    => $player_2,
-            'field' => $context->GetUserMgr()->GetUser($player_2)->GetField()
+            'id'      => 2,
+            'session' => $player_2,
+            'field'   => $player_2->GetField()
         );
         
-        $packet = array(
+        $packet = new Packet([
             'opcode' => 'smsg_start_battle',
-            'data' => array(
-            )
-        );
+            'data' => []
+        ]);
         
         foreach ($this->players as $player)
         {
-            $this->context->Send($packet, $player['id']);
+            $player['session']->SendPacket($packet);
         }
 
         $this->setPlayerCanMove(rand(0, 1) == 0 ? $player_1 : $player_2);
     }
     
-    private function setPlayerCanMove($id)
+    private function setPlayerCanMove(int $id) : void
     {
         $this->player_can_move = $id;
         
         foreach ($this->players as $player)
         {
-            $packet = array(
+            $packet = new Packet([
                 'opcode' => 'smsg_can_move',
-                'data' => array(
+                'data' => [
                     'can_move' => $player['id'] == $id
-                )
-            );
-            
-            $this->context->send($packet, $player['id']);
+                ]
+            ]);
+
+            $player['session']->sendPacket($packet);
         }
     }
     
-    private function endGame($winner, $lose)
+    private function endGame(int $winner, int $lose) : void
     {
         foreach ($this->players as $player)
         {
-            $packet = array(
+            $packet = new Packet([
                 'opcode' => 'smsg_end_game',
-                'data' => array(
+                'data' => [
                     'you_win' => $player['id'] == $winner,
                     'lose'    => $lose
-                )
-            );
-            
-            $this->context->send($packet, $player['id']);
-            
-            $user = $this->context->getUserMgr()->GetUser($player['id']);
-            if ($user)
-                $user->setGame(NULL);
+                ]
+            ]);
+
+            $player['session']->sendPacket($packet);
+            $player['session']->setGame(NULL);
         }
 
         $this->is_ended = true;
     }
     
-    public function isEnded()
+    public function isEnded() : bool
     {
         return $this->is_ended;
     }
 
-    public function playerLeave($player_id)
+    public function playerLeave(int $player_id) : void
     {
         foreach ($this->players as $player)
         {
@@ -93,57 +92,61 @@ class Game
         }
     }
 
-    public function chatMessage($message, $player_id)
+    public function chatMessage(string $message, ClientSession $session) : void
     {
+        $player_id = $this->getPlayerIdBySession($session);
+
         foreach ($this->players as $player)
         {
-            $packet = array(
+            $packet = new Packet([
                 'opcode' => 'smsg_game_chat_message',
-                'data' => array(
+                'data' => [
                     'message' => $message,
                     'self'    => $player['id'] == $player_id,
-                )
-            );
-            
-            $this->context->send($packet, $player['id']);
+                ]
+            ]);
+
+            $player['session']->sendPacket($packet);
         }
     }
     
-    public function playerMove($data, $player_id)
+    public function playerMove(\stdClass $data, ClientSession $session) : void
     {
+        $player_id = $this->getPlayerIdBySession($session);
+
         if ($this->player_can_move == $player_id)
         {
             foreach ($this->players as $player)
             {
                 if ($player['id'] != $player_id)
                 {
-                    $result = $player['field']->Shot($data->{'x'}, $data->{'y'});
+                    $result = $player['field']->shot($data->x, $data->y);
 
-                    $packet = array(
+                    $packet = new Packet([
                         'opcode' => 'smsg_move',
-                        'data' => array(
+                        'data' => [
                             'result'    => $result['result'],
-                            'x'         => $data->{'x'},
-                            'y'         => $data->{'y'},
+                            'x'         => $data->x,
+                            'y'         => $data->y,
                             'destroyed' => $result['destroyed'],
                             'ship'      => $result['ship'],
-                        )
-                    );
+                        ]
+                    ]);
                     
-                    $this->context->send($packet, $player_id);
+                    $player['session']->sendPacket($packet);
                     
-                    $packet = array(
+                    $packet = new Packet([
                         'opcode' => 'smsg_opponent_move',
-                        'data' => array(
+                        'data' => [
                             'result'    => $result['result'],
-                            'x'         => $data->{'x'},
-                            'y'         => $data->{'y'},
+                            'x'         => $data->x,
+                            'y'         => $data->y,
                             'destroyed' => $result['destroyed'],
                             'ship'      => $result['ship'],
-                        )
-                    );
+                        ]
+                    ]);
 
-                    $this->context->send($packet, $player['id']);
+                    $player['session']->sendPacket($packet);
                     
                     if ($result['end_game'])
                         $this->endGame($player_id, false);
@@ -157,15 +160,34 @@ class Game
         }
         else
         {
-            $packet = array(
+            $packet = new Packet([
                 'opcode' => 'smsg_move',
-                'data' => array(
+                'data' => [
                     'error' => 1
-                )
-            );
-            
-            $this->context->send($packet, $player_id);
+                ]
+            ]);
+
+            foreach ($this->players as $player)
+            {
+                if ($player['id'] == $player_id)
+                {
+                    $player['session']->sendPacket($packet);
+                }
+            }
         }
+    }
+
+    private function getPlayerIdBySession(ClientSession $session) : int
+    {
+        foreach ($this->players as $player)
+        {
+            if ($player['session'] != $session)
+            {
+                return $player['id'];
+            }
+        }
+
+        return null;
     }
 }
 ?>
