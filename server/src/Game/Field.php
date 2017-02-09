@@ -1,6 +1,5 @@
-<?
-require_once "Vector2.php";
-require_once "Ship.php";
+<?php
+namespace Battleship\Game;
 
 class Field
 {
@@ -35,7 +34,7 @@ class Field
         $this->Send();
     }
     
-    public function Shot($x, $y)
+    public function shot(int $x, int $y)
     {
         if ($this->field[$x][$y]['type'] == self::TYPE_EMPTY)
         {
@@ -45,7 +44,7 @@ class Field
         else if ($this->field[$x][$y]['type'] == self::TYPE_SHIP)
         {
             $this->field[$x][$y]['type'] = self::TYPE_HIT;
-            $ship_info = $this->field[$x][$y]['ship']->Hit($x, $y);
+            $ship_info = $this->field[$x][$y]['ship']->hit($x, $y);
             
             $ship_info['end_game'] = true;
             foreach ($this->ships as $ship)
@@ -62,7 +61,7 @@ class Field
         }
     }
 
-    private function GenerateShips()
+    private function generateShips()
     {
         $this->ships[] = new Ship($this, 4);
 
@@ -74,11 +73,9 @@ class Field
 
         for ($i = 0; $i < 4; $i++)
             $this->ships[] = new Ship($this, 1);
-        
-        //$this->toString();
     }
     
-    public function PlaceShip($start_pos_x, $start_pos_y, $end_pos_x, $end_pos_y, $ship)
+    public function placeShip($start_pos_x, $start_pos_y, $end_pos_x, $end_pos_y, $ship) : void
     {
         for ($i = $start_pos_x; $i <= $end_pos_x; $i++)
         {
@@ -90,7 +87,7 @@ class Field
         }
     }
 
-    public function CheckCells($x, $y)
+    public function checkCells(int $x, int $y) : bool
     {
         if ($x > 9 || $x < 0 || $y > 9 || $y < 0)
             return false;
@@ -118,7 +115,7 @@ class Field
         return true;
     }
 
-    public function GetFreeCells()
+    public function getFreeCells()
     {
         $arFreeCells = array();
 
@@ -126,7 +123,7 @@ class Field
         {
             for ($j = 0; $j < 10; $j++)
             {
-                if ($this->CheckCells($i, $j))
+                if ($this->checkCells($i, $j))
                 {
                     $arFreeCells[] = array('x' => $i, 'y' => $j);
                 }
@@ -136,7 +133,7 @@ class Field
         return $arFreeCells;
     }
     
-    private function Send()
+    private function send()
     {
         $field = array();
         foreach ($this->field as $x => $row)
@@ -165,7 +162,7 @@ class Field
             )
         );
         
-        $this->context->Send($packet, $this->id);
+        $this->context->send($packet, $this->id);
     }
     
     public function toString()

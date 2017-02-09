@@ -1,4 +1,6 @@
-<?
+<?php
+namespace Battleship\Game;
+
 class Ship
 {
     private $field;
@@ -16,15 +18,15 @@ class Ship
         
         //echo "Start create ship. Lenght: ".$this->ship_lenght."\r\n";
         
-        $this->GenerateShip();
+        $this->generateShip();
     }
     
-    public function IsDestroyed()
+    public function isDestroyed()
     {
         return $this->destroyed;
     }
     
-    public function Hit($x, $y)
+    public function hit($x, $y)
     {
         $destroyed = true;
 
@@ -50,11 +52,11 @@ class Ship
         return array('result' => 1, 'destroyed' => $destroyed, 'ship' => $_cells);
     }
 
-    private function GenerateShip()
+    private function generateShip() : void
     {
         $count = 0;
             
-        $arFreeCells = $this->field->GetFreeCells();
+        $arFreeCells = $this->field->getFreeCells();
 
         while (true)
         {
@@ -110,12 +112,12 @@ class Ship
             // Проверяем все возможные направления корабля для спавна
             foreach ($directions as $i)
             {
-                $end_cell = $this->GetEndCell($x, $y, $i);
+                $end_cell = $this->getEndCell($x, $y, $i);
                 
                 $end_point_x = $end_cell['x'];
                 $end_point_y = $end_cell['y'];
 
-                if ($end_point_x > 9 || $end_point_x < 0 || $end_point_y > 9 || $end_point_y < 0 || !$this->CheckShipPosition($x, $y, $end_cell['x'], $end_cell['y']))
+                if ($end_point_x > 9 || $end_point_x < 0 || $end_point_y > 9 || $end_point_y < 0 || !$this->checkShipPosition($x, $y, $end_cell['x'], $end_cell['y']))
                 {
                     $error = true;
                 }
@@ -139,7 +141,7 @@ class Ship
                 continue;
             }
 
-            $this->ReleaseShip($x, $y, $end_point_x, $end_point_y);
+            $this->releaseShip($x, $y, $end_point_x, $end_point_y);
 
             //echo "direction: ".$direction.". count: ".$count."\r\n";
             
@@ -147,7 +149,7 @@ class Ship
         }
     }
     
-    private function GetEndCell($start_x, $start_y, $direction)
+    private function getEndCell(int $start_x, int $start_y, int $direction) : array
     {
         $end_point_x = $start_x;
         $end_point_y = $start_y;
@@ -168,7 +170,7 @@ class Ship
         return array('x' => $end_point_x, 'y' => $end_point_y);
     }
     
-    private function CheckShipPosition($start_x, $start_y, $end_x, $end_y)
+    private function checkShipPosition(int $start_x, int $start_y, int $end_x, int $end_y) : bool
     {
         $start_pos_x = $start_x > $end_x ? $end_x : ($start_x < $end_x ? $start_x : $start_x);
         $end_pos_x   = $start_x > $end_x ? $start_x : ($start_x < $end_x ? $end_x : $start_x);
@@ -180,7 +182,7 @@ class Ship
         {
             for ($j = $start_pos_y; $j <= $end_pos_y; $j++)
             {
-                if (!$this->field->CheckCells($i, $j))
+                if (!$this->field->checkCells($i, $j))
                     return false;
             }
         }
@@ -188,7 +190,7 @@ class Ship
         return true;
     }
 
-    private function ReleaseShip($start_x, $start_y, $end_x, $end_y)
+    private function releaseShip(int $start_x, int $start_y, int $end_x, int $end_y) : void
     {
         $start_pos_x = $start_x > $end_x ? $end_x : ($start_x < $end_x ? $start_x : $start_x);
         $end_pos_x   = $start_x > $end_x ? $start_x : ($start_x < $end_x ? $end_x : $start_x);
@@ -198,7 +200,7 @@ class Ship
         
         //echo "Release ship. x1: ".$start_pos_x.", y1: ".$start_pos_y.", x2: ".$end_pos_x.", y2: ".$end_pos_y.".\r\n";
 
-        $this->field->PlaceShip($start_pos_x, $start_pos_y, $end_pos_x, $end_pos_y, $this);
+        $this->field->placeShip($start_pos_x, $start_pos_y, $end_pos_x, $end_pos_y, $this);
         
         for ($x = $start_pos_x; $x <= $end_pos_x; $x++)
         {

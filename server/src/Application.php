@@ -31,7 +31,7 @@ class Application
             $this->logger->pushHandler(new StreamHandler($log['stream'], $log['level']));
         }
 
-        $this->logger->info("Battleship server.");
+        $this->logger->info("Game server.");
         $this->logger->info("Version 2.0.");
         $this->logger->info("");
 

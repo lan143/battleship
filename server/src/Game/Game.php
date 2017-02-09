@@ -1,5 +1,5 @@
-<?
-require_once "Field.php";
+<?php
+namespace Battleship\Game;
 
 class Game
 {
@@ -34,10 +34,10 @@ class Game
             $this->context->Send($packet, $player['id']);
         }
 
-        $this->SetPlayerCanMove(rand(0, 1) == 0 ? $player_1 : $player_2);
+        $this->setPlayerCanMove(rand(0, 1) == 0 ? $player_1 : $player_2);
     }
     
-    private function SetPlayerCanMove($id)
+    private function setPlayerCanMove($id)
     {
         $this->player_can_move = $id;
         
@@ -50,11 +50,11 @@ class Game
                 )
             );
             
-            $this->context->Send($packet, $player['id']);
+            $this->context->send($packet, $player['id']);
         }
     }
     
-    private function EndGame($winner, $lose)
+    private function endGame($winner, $lose)
     {
         foreach ($this->players as $player)
         {
@@ -66,34 +66,34 @@ class Game
                 )
             );
             
-            $this->context->Send($packet, $player['id']);
+            $this->context->send($packet, $player['id']);
             
-            $user = $this->context->GetUserMgr()->GetUser($player['id']);
+            $user = $this->context->getUserMgr()->GetUser($player['id']);
             if ($user)
-                $user->SetGame(NULL);
+                $user->setGame(NULL);
         }
 
         $this->is_ended = true;
     }
     
-    public function IsEnded()
+    public function isEnded()
     {
         return $this->is_ended;
     }
 
-    public function PlayerLeave($player_id)
+    public function playerLeave($player_id)
     {
         foreach ($this->players as $player)
         {
             if ($player['id'] != $player_id)
             {
-                $this->EndGame($player['id'], true);
+                $this->endGame($player['id'], true);
                 return;
             }
         }
     }
 
-    public function ChatMessage($message, $player_id)
+    public function chatMessage($message, $player_id)
     {
         foreach ($this->players as $player)
         {
@@ -105,11 +105,11 @@ class Game
                 )
             );
             
-            $this->context->Send($packet, $player['id']);
+            $this->context->send($packet, $player['id']);
         }
     }
     
-    public function PlayerMove($data, $player_id)
+    public function playerMove($data, $player_id)
     {
         if ($this->player_can_move == $player_id)
         {
@@ -130,7 +130,7 @@ class Game
                         )
                     );
                     
-                    $this->context->Send($packet, $player_id);
+                    $this->context->send($packet, $player_id);
                     
                     $packet = array(
                         'opcode' => 'smsg_opponent_move',
@@ -143,15 +143,15 @@ class Game
                         )
                     );
 
-                    $this->context->Send($packet, $player['id']);
+                    $this->context->send($packet, $player['id']);
                     
                     if ($result['end_game'])
-                        $this->EndGame($player_id, false);
+                        $this->endGame($player_id, false);
                     
                     if ($result['result'] == 1)
-                        $this->SetPlayerCanMove($player_id);
+                        $this->setPlayerCanMove($player_id);
                     else
-                        $this->SetPlayerCanMove($player['id']);
+                        $this->setPlayerCanMove($player['id']);
                 }
             }
         }
@@ -164,7 +164,7 @@ class Game
                 )
             );
             
-            $this->context->Send($packet, $player_id);
+            $this->context->send($packet, $player_id);
         }
     }
 }

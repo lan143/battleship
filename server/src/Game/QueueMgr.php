@@ -1,5 +1,5 @@
-<?
-require_once "Game.php";
+<?php
+namespace Battleship\Game;
 
 class QueueMgr
 {
@@ -22,18 +22,18 @@ class QueueMgr
         return self::$instance;
     }
     
-    public function Init($context)
+    public function init($context)
     {
         $this->context = $context;
         $this->is_inited = true;
     }
     
-    public function IsInited()
+    public function isInited()
     {
         return $this->is_inited;
     }
     
-    public function JoinQueue($user_id)
+    public function joinQueue($user_id)
     {
         $this->users[] = $user_id;
         
@@ -41,19 +41,19 @@ class QueueMgr
         {
             $player_1 = array_shift($this->users);
             $player_2 = array_shift($this->users);
-            $this->StartGame($player_1, $player_2);
+            $this->startGame($player_1, $player_2);
         }
         
         foreach ($this->games as $key => $val)
         {
-            if ($val['game'] && $val['game']->IsEnded())
+            if ($val['game'] && $val['game']->isEnded())
             {
                 unset($this->games[$key]);
             }
         }
     }
     
-    public function LeaveQueue($user_id)
+    public function leaveQueue($user_id)
     {
         foreach ($this->users as $key => $user)
         {
@@ -64,7 +64,7 @@ class QueueMgr
         }
     }
 
-    private function StartGame($player_1, $player_2)
+    private function startGame($player_1, $player_2)
     {
         $game = array(
             'game' => new Game($player_1, $player_2, $this->context),
@@ -85,7 +85,7 @@ class QueueMgr
         $this->games[] = $game;
     }
     
-    public function GetGameByUserId($id)
+    public function getGameByUserId($id)
     {
         foreach ($this->games as $game)
         {

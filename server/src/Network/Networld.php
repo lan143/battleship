@@ -2,6 +2,7 @@
 namespace Battleship\Network;
 
 use Battleship\Battleship;
+use Ratchet\ConnectionInterface;
 
 class Networld
 {
@@ -14,8 +15,7 @@ class Networld
 
     public function onOpen(ConnectionInterface $conn)
     {
-        $session = new ClientSession($conn);
-        $session->word_session = $this;
+        $session = new ClientSession($conn, $this);
         $this->sessions->attach($session);
 
         Battleship::$app->logger->debug("New connection! ({$conn->resourceId})");
@@ -28,7 +28,26 @@ class Networld
         $session = $this->findSession($from);
         if ($session !== null)
         {
-            $session->handle($msg);
+            $packet = json_decode($msg);
+            $handlerName = $packet->{'opcode'};
+
+            if (method_exists('PacketHandler', $handlerName))
+            {
+                PacketHandler::$handlerName($packet->{'data'}, $session);
+            }
+            else
+            {
+                Battleship::$app->logger->error("Got unknown packet: ".$handlerName);
+
+                $packet = array(
+                    'opcode' => 'smsg_error',
+                    'data' => array(
+                        'message' => 'received unknown packet',
+                    )
+                );
+
+                $from->send(json_encode($packet));
+            }
         }
     }
 

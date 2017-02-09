@@ -1,10 +1,9 @@
 <?php
-
-require_once "Battleship/QueueMgr.php";
+namespace Battleship\Network;
 
 class PacketHandler
 {
-    static function cmsg_request_field($data, $id, $context)
+    static function cmsg_request_field($data, ClientSession $session)
     {
         $user = $context->GetUserMgr()->GetUser($id);
 
@@ -14,7 +13,7 @@ class PacketHandler
         }
     }
 
-    static function cmsg_join_queue($data, $id, $context)
+    static function cmsg_join_queue($data, ClientSession $session)
     {
         if (!QueueMgr::getInstance()->IsInited())
             QueueMgr::getInstance()->Init($context);
@@ -22,12 +21,12 @@ class PacketHandler
         QueueMgr::getInstance()->JoinQueue($id);
     }
     
-    static function cmsg_leave_queue($data, $id, $context)
+    static function cmsg_leave_queue($data, ClientSession $session)
     {
         QueueMgr::getInstance()->LeaveQueue($id);
     }
     
-    static function cmsg_player_move($data, $id, $context)
+    static function cmsg_player_move($data, ClientSession $session)
     {
         $game = $context->GetUserMgr()->GetUser($id)->GetGame();
         
@@ -35,7 +34,7 @@ class PacketHandler
             $game->PlayerMove($data, $id);
     }
     
-    static function cmsg_leave_game($data, $id, $context)
+    static function cmsg_leave_game($data, ClientSession $session)
     {
         $game = $context->GetUserMgr()->GetUser($id)->GetGame();
         
@@ -43,7 +42,7 @@ class PacketHandler
             $game->PlayerLeave($id);
     }
     
-    static function cmsg_ping($data, $id, $context)
+    static function cmsg_ping($data, ClientSession $session)
     {
         $packet = array(
             'opcode' => 'smsg_pong',
@@ -54,7 +53,7 @@ class PacketHandler
         $context->Send($packet, $id);
     }
     
-    static function cmsg_online($data, $id, $context)
+    static function cmsg_online($data, ClientSession $session)
     {
         $packet = array(
             'opcode' => 'smsg_online',
@@ -66,7 +65,7 @@ class PacketHandler
         $context->Send($packet, $id);
     }
     
-    static function cmsg_game_chat_message($data, $id, $context)
+    static function cmsg_game_chat_message($data, ClientSession $session)
     {
         $game = $context->GetUserMgr()->GetUser($id)->GetGame();
         
