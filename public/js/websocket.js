@@ -127,7 +127,7 @@ Object.defineProperties(SiteConn, {
     PORT: {
         enumerable: true,
         configurable: false,
-        value: 9999
+        value: 8080
     },
     RECONNECT_INTERVAL: {
         enumerable: true,

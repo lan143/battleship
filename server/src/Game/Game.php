@@ -39,8 +39,9 @@ class Game
         $this->setPlayerCanMove(rand(0, 1) == 0 ? $player_1 : $player_2);
     }
     
-    private function setPlayerCanMove(int $id) : void
+    private function setPlayerCanMove(ClientSession $session)
     {
+        $id = $this->getPlayerIdBySession($session);
         $this->player_can_move = $id;
         
         foreach ($this->players as $player)
@@ -56,7 +57,7 @@ class Game
         }
     }
     
-    private function endGame(int $winner, int $lose) : void
+    private function endGame(int $winner, int $lose)
     {
         foreach ($this->players as $player)
         {
@@ -80,7 +81,7 @@ class Game
         return $this->is_ended;
     }
 
-    public function playerLeave(int $player_id) : void
+    public function playerLeave(int $player_id)
     {
         foreach ($this->players as $player)
         {
@@ -92,7 +93,7 @@ class Game
         }
     }
 
-    public function chatMessage(string $message, ClientSession $session) : void
+    public function chatMessage(string $message, ClientSession $session)
     {
         $player_id = $this->getPlayerIdBySession($session);
 
@@ -110,7 +111,7 @@ class Game
         }
     }
     
-    public function playerMove(\stdClass $data, ClientSession $session) : void
+    public function playerMove(\stdClass $data, ClientSession $session)
     {
         $player_id = $this->getPlayerIdBySession($session);
 

@@ -54,7 +54,7 @@ class Packet
         return $this->opcode;
     }
 
-    public function setOpcode(string $opcode) : void
+    public function setOpcode(string $opcode)
     {
         $this->opcode = $opcode;
     }

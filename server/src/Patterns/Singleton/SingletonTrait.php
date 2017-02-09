@@ -12,11 +12,7 @@ trait SingletonTrait
             : static::$instance = new static;
     }
 
-    final private function __construct()
-    {
-        $this->init();
-    }
-
+    final private function __construct() { }
     final private function __wakeup() {}
     final private function __clone() {}
 }

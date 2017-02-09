@@ -21,12 +21,12 @@ class Ship
         $this->generateShip();
     }
     
-    public function isDestroyed()
+    public function isDestroyed() : bool
     {
         return $this->destroyed;
     }
     
-    public function hit($x, $y)
+    public function hit($x, $y) : array
     {
         $destroyed = true;
 
@@ -52,7 +52,7 @@ class Ship
         return array('result' => 1, 'destroyed' => $destroyed, 'ship' => $_cells);
     }
 
-    private function generateShip() : void
+    private function generateShip()
     {
         $count = 0;
             
@@ -190,7 +190,7 @@ class Ship
         return true;
     }
 
-    private function releaseShip(int $start_x, int $start_y, int $end_x, int $end_y) : void
+    private function releaseShip(int $start_x, int $start_y, int $end_x, int $end_y)
     {
         $start_pos_x = $start_x > $end_x ? $end_x : ($start_x < $end_x ? $start_x : $start_x);
         $end_pos_x   = $start_x > $end_x ? $start_x : ($start_x < $end_x ? $end_x : $start_x);

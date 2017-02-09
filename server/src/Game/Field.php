@@ -2,6 +2,7 @@
 namespace Battleship\Game;
 
 use Battleship\Network\ClientSession;
+use Battleship\Network\Packet;
 
 class Field
 {
@@ -61,7 +62,7 @@ class Field
         }
     }
 
-    private function generateShips() : void
+    private function generateShips()
     {
         $this->ships[] = new Ship($this, 4);
 
@@ -75,7 +76,7 @@ class Field
             $this->ships[] = new Ship($this, 1);
     }
     
-    public function placeShip($start_pos_x, $start_pos_y, $end_pos_x, $end_pos_y, $ship) : void
+    public function placeShip($start_pos_x, $start_pos_y, $end_pos_x, $end_pos_y, $ship)
     {
         for ($i = $start_pos_x; $i <= $end_pos_x; $i++)
         {
@@ -133,7 +134,7 @@ class Field
         return $arFreeCells;
     }
     
-    private function send() : void
+    private function send()
     {
         $field = array();
         foreach ($this->field as $x => $row)
@@ -155,7 +156,7 @@ class Field
             }
         }
         
-        $packet = Packet([
+        $packet = new Packet([
             'opcode' => 'smsg_field',
             'data' => [
                 'field' => $field

@@ -12,7 +12,7 @@ class QueueMgr implements SingletonInterface
     private $sessions = array();
     private $games = array();
     
-    public function joinQueue(ClientSession $session) : void
+    public function joinQueue(ClientSession $session)
     {
         $this->sessions[] = $session;
         
@@ -32,7 +32,7 @@ class QueueMgr implements SingletonInterface
         }
     }
     
-    public function leaveQueue(ClientSession $session) : void
+    public function leaveQueue(ClientSession $session)
     {
         foreach ($this->sessions as $key => $_session)
         {
@@ -43,7 +43,7 @@ class QueueMgr implements SingletonInterface
         }
     }
 
-    private function startGame(ClientSession $player_1, ClientSession $player_2) : void
+    private function startGame(ClientSession $player_1, ClientSession $player_2)
     {
         $game = array(
             'game' => new Game($player_1, $player_2),

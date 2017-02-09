@@ -4,8 +4,9 @@ namespace Battleship\Network;
 use Battleship\Battleship;
 use Battleship\Network\Exceptions\PacketParseException;
 use Ratchet\ConnectionInterface;
+use Ratchet\MessageComponentInterface;
 
-class Networld
+class Networld implements MessageComponentInterface
 {
     protected $sessions;
 
@@ -14,7 +15,7 @@ class Networld
         $this->sessions = new \SplObjectStorage;
     }
 
-    public function onOpen(ConnectionInterface $conn) : void
+    public function onOpen(ConnectionInterface $conn)
     {
         $session = new ClientSession($conn, $this);
         $this->sessions->attach($session);
@@ -22,7 +23,7 @@ class Networld
         Battleship::$app->logger->debug("New connection! ({$conn->resourceId})");
     }
 
-    public function onMessage(ConnectionInterface $from, $msg) : void
+    public function onMessage(ConnectionInterface $from, $msg)
     {
         Battleship::$app->logger->debug('Connection '.$from->resourceId.' sending message "'.$msg.'"');
 
@@ -39,7 +40,7 @@ class Networld
 
             $handlerName = $packet->getOpcode();
 
-            if (method_exists('PacketHandler', $handlerName))
+            if (method_exists('\Battleship\Network\PacketHandler', $handlerName))
             {
                 PacketHandler::$handlerName($packet->getData(), $session);
             }
@@ -59,7 +60,7 @@ class Networld
         }
     }
 
-    public function onClose(ConnectionInterface $conn) : void
+    public function onClose(ConnectionInterface $conn)
     {
         $session = $this->findSession($conn);
         if ($session !== null)
@@ -70,7 +71,7 @@ class Networld
         Battleship::$app->logger->debug("Connection {$conn->resourceId} has disconnected");
     }
 
-    public function onError(ConnectionInterface $conn, \Exception $e) : void
+    public function onError(ConnectionInterface $conn, \Exception $e)
     {
         Battleship::$app->logger->error("An error has occurred: {$e->getMessage()}");
         $conn->close();
@@ -80,14 +81,14 @@ class Networld
     {
         foreach ($this->sessions as $session)
         {
-            if ($session->conn->resourceId == $conn->resourceId)
+            if ($session->getConnection()->resourceId == $conn->resourceId)
                 return $session;
         }
 
         return null;
     }
 
-    public function sendPacket(Packet $packet, ClientSession $session) : void
+    public function sendPacket(Packet $packet, ClientSession $session)
     {
         $session->getConnection()->send((string)$packet);
     }

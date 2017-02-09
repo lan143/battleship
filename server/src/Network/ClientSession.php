@@ -30,7 +30,7 @@ class ClientSession
         return $this->current_game;
     }
 
-    public function setGame(Game $game) : void
+    public function setGame(Game $game)
     {
         $this->current_game = $game;
     }
@@ -40,7 +40,7 @@ class ClientSession
         return $this->conn;
     }
 
-    public function generateField() : void
+    public function generateField()
     {
         $this->field = new Field($this);
     }
@@ -50,7 +50,7 @@ class ClientSession
         return $this->field;
     }
 
-    public function sendPacket(Packet $packet) : void
+    public function sendPacket(Packet $packet)
     {
         $this->networld->sendPacket($packet, $this);
     }
