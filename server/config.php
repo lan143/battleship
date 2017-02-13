@@ -1,16 +1,23 @@
 <?php
 
 return [
-    'websocket' => [
-        'listen_host' => '0.0.0.0',
-        'listen_port' => 8080,
+    'bootstrap' => ['server'],
+    'components' => [
+        'logger' => [
+            'class' => 'Battleship\Components\Logger',
+            'handlers' => [
+                [
+                    'stream' => "php://stdout",
+                    'level' => \Monolog\Logger::DEBUG
+                ],
+            ]
+        ],
+        'server' => [
+            'class' => 'Battleship\Components\GameServer',
+            'listen_host' => '0.0.0.0',
+            'listen_port' => 8080,
+        ],
     ],
-    'logs' => [
-        [
-            'stream' => "php://stdout",
-            'level' => \Monolog\Logger::DEBUG
-        ]
-    ]
 ];
 
 ?>

@@ -1,14 +1,7 @@
 <?php
 namespace Battleship;
 
-use Battleship\Network\Networld;
-use Ratchet\Server\IoServer;
-use Ratchet\Http\HttpServer;
-use Ratchet\WebSocket\WsServer;
-use React\EventLoop\Factory;
-use React\Socket\Server;
-use Monolog\Logger;
-use Monolog\Handler\StreamHandler;
+use Battleship\DI\ServiceLocator;
 
 /**
  * Class Application
@@ -17,10 +10,9 @@ use Monolog\Handler\StreamHandler;
  * @property array $config
  * @property Logger $logger
  */
-class Application
+class Application extends ServiceLocator
 {
     public $config;
-    public $logger;
 
     public function __construct($config)
     {
@@ -31,35 +23,14 @@ class Application
 
     public function run()
     {
-        $this->logger = new Logger('battleship');
+        $this->setComponents($this->config['components']);
 
-        foreach ($this->config['logs'] as $log)
+        if (isset($this->config['bootstrap']) && is_array($this->config['bootstrap']))
         {
-            $this->logger->pushHandler(new StreamHandler($log['stream'], $log['level']));
+            foreach ($this->config['bootstrap'] as $id)
+            {
+                $this->get($id);
+            }
         }
-
-        $this->logger->info("Game server.");
-        $this->logger->info("Version 2.0.");
-        $this->logger->info("");
-
-        $loop = Factory::create();
-
-        $webSock = new Server($loop);
-        $webSock->listen($this->config['websocket']['listen_port'], $this->config['websocket']['listen_host']);
-
-        $networld = new Networld();
-
-        $server = new IoServer(
-            new HttpServer(
-                new WsServer(
-                    $networld
-                )
-            ),
-            $webSock
-        );
-
-        $this->logger->info("Server running...");
-
-        $loop->run();
     }
 }
