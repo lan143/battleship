@@ -2,7 +2,6 @@
 namespace Battleship\Network;
 
 use Battleship\Battleship;
-use Battleship\Game\QueueMgr;
 use Battleship\Network\Exceptions\PacketParseException;
 use Ratchet\ConnectionInterface;
 use Ratchet\MessageComponentInterface;
@@ -80,7 +79,7 @@ class Networld implements MessageComponentInterface
             if ($game)
                 $game->playerLeave($session);
 
-            QueueMgr::getInstance()->leaveQueue($session);
+            Battleship::$app->queue->leaveQueue($session);
 
             $this->sessions->detach($session);
         }

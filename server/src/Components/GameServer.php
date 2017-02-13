@@ -34,6 +34,10 @@ class GameServer extends Component
             $webSock
         );
 
+        Battleship::$app->set('queue', [
+            'class' => 'Battleship\Game\QueueMgr'
+        ]);
+
         Battleship::$app->logger->info("Server running...");
 
         $loop->run();

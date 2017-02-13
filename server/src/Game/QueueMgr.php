@@ -1,14 +1,11 @@
 <?php
 namespace Battleship\Game;
 
+use Battleship\Base\Component;
 use Battleship\Network\ClientSession;
-use Battleship\Patterns\Singleton\SingletonInterface;
-use Battleship\Patterns\Singleton\SingletonTrait;
 
-class QueueMgr implements SingletonInterface
+class QueueMgr extends Component
 {
-    use SingletonTrait;
-    
     private $sessions = array();
     private $games = array();
     

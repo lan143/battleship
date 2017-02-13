@@ -1,7 +1,7 @@
 <?php
 namespace Battleship\Network;
 
-use Battleship\Game\QueueMgr;
+use Battleship\Battleship;
 
 class PacketHandler
 {
@@ -12,12 +12,12 @@ class PacketHandler
 
     static function cmsg_join_queue(\stdClass $data, ClientSession $session)
     {
-        QueueMgr::getInstance()->joinQueue($session);
+        Battleship::$app->queue->joinQueue($session);
     }
     
     static function cmsg_leave_queue(\stdClass $data, ClientSession $session)
     {
-        QueueMgr::getInstance()->leaveQueue($session);
+        Battleship::$app->queue->leaveQueue($session);
     }
     
     static function cmsg_player_move(\stdClass $data, ClientSession $session)
